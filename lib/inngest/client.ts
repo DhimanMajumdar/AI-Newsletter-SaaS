@@ -1,2 +1,8 @@
 import { Inngest } from "inngest";
-export const inngest = new Inngest({ id: "ai-newsletter-app" })
+
+// Create the Inngest client
+export const inngest = new Inngest({
+    id: "personalized-newsletter",
+    name: "Personalized Newsletter Generator",
+    signingKey: process.env.INNGEST_SIGNING_KEY,
+});
