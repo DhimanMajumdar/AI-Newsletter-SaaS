@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
@@ -48,23 +48,9 @@ const frequencyOptions = [
 export default function SelectPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedFrequency, setSelectedFrequency] = useState<string>("weekly");
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
-
-  // useEffect(() => {
-  //   fetch("/api/subscription-status")
-  //     .then((r) => r.json())
-  //     .then((json) => {
-  //       if (!json.active) {
-  //         router.replace("/subscribe");
-  //       }
-  //     })
-  //     .catch(() => {
-  //       router.replace("/subscribe");
-  //     });
-  // }, [router]);
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -99,13 +85,9 @@ export default function SelectPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save preferences");
-      }
+      if (!response.ok) throw new Error("Failed to save preferences");
 
-      alert(
-        "Your newsletter preferences have been saved! You'll start receiving newsletters according to your schedule."
-      );
+      alert("Your newsletter preferences have been saved!");
       router.push("/dashboard");
     } catch (error) {
       console.error("Error:", error);
@@ -118,11 +100,11 @@ export default function SelectPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 px-2 sm:px-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Customize Your Newsletter
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-lg sm:text-xl text-gray-600">
             Select your interests and delivery frequency to start receiving
             personalized newsletters
           </p>
@@ -130,10 +112,10 @@ export default function SelectPage() {
 
         <form
           onSubmit={handleSavePreferences}
-          className="bg-white rounded-lg shadow-lg p-6"
+          className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 space-y-8"
         >
           {/* Categories Section */}
-          <div className="mb-8">
+          <div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               Choose Your Categories
             </h2>
@@ -142,11 +124,11 @@ export default function SelectPage() {
               newsletter
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {categories.map((category) => (
                 <label
                   key={category.id}
-                  className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                  className={`flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                     selectedCategories.includes(category.id)
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -181,11 +163,11 @@ export default function SelectPage() {
                       )}
                     </div>
                   </div>
-                  <div className="ml-3">
-                    <div className="text-sm font-medium text-gray-900">
+                  <div className="ml-3 flex-1">
+                    <div className="text-sm sm:text-base font-medium text-gray-900">
                       {category.name}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs sm:text-sm text-gray-500">
                       {category.description}
                     </div>
                   </div>
@@ -193,14 +175,14 @@ export default function SelectPage() {
               ))}
             </div>
 
-            <div className="text-sm text-gray-600 mb-6">
+            <div className="text-sm sm:text-base text-gray-600 mt-4">
               {selectedCategories.length} categor
               {selectedCategories.length !== 1 ? "ies" : "y"} selected
             </div>
           </div>
 
           {/* Frequency Section */}
-          <div className="mb-8">
+          <div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               Delivery Frequency
             </h2>
@@ -208,11 +190,11 @@ export default function SelectPage() {
               How often would you like to receive your newsletter?
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {frequencyOptions.map((frequency) => (
                 <label
                   key={frequency.id}
-                  className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                  className={`flex items-start p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                     selectedFrequency === frequency.id
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -238,11 +220,11 @@ export default function SelectPage() {
                       )}
                     </div>
                   </div>
-                  <div className="ml-3">
-                    <div className="text-sm font-medium text-gray-900">
+                  <div className="ml-3 flex-1">
+                    <div className="text-sm sm:text-base font-medium text-gray-900">
                       {frequency.name}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs sm:text-sm text-gray-500">
                       {frequency.description}
                     </div>
                   </div>
@@ -252,21 +234,22 @@ export default function SelectPage() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+            <div className="text-sm sm:text-base text-gray-600">
               {selectedCategories.length} categor
-              {selectedCategories.length !== 1 ? "ies" : "y"} selected •
+              {selectedCategories.length !== 1 ? "ies" : "y"} selected •{" "}
               {selectedFrequency} delivery
             </div>
             <button
               type="submit"
-              className={`px-6 py-3 rounded-lg font-medium text-white transition-colors ${
+              disabled={selectedCategories.length === 0 || isSaving}
+              className={`px-6 py-3 rounded-lg font-medium text-white transition-colors w-full sm:w-auto ${
                 selectedCategories.length === 0
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              Save Preferences
+              {isSaving ? "Saving..." : "Save Preferences"}
             </button>
           </div>
         </form>
