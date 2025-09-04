@@ -91,10 +91,8 @@ export async function POST(request: NextRequest) {
                 categories: categories,
                 frequency: frequency,
                 scheduledFor: scheduleTime.toISOString(),
-
+                isTest: true,
             },
-            ts: scheduleTime.getTime(), // 👈 this makes it scheduled, not immediate
-
         });
 
         return NextResponse.json({
@@ -111,179 +109,179 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// export async function PATCH(request: NextRequest) {
-//     const supabase = await createClient();
+export async function PATCH(request: NextRequest) {
+    const supabase = await createClient();
 
-//     // Get the user session
-//     const {
-//         data: { user },
-//     } = await supabase.auth.getUser();
+    // Get the user session
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
-//     if (!user) {
-//         return NextResponse.json(
-//             { error: "You must be logged in to update preferences." },
-//             { status: 401 }
-//         );
-//     }
+    if (!user) {
+        return NextResponse.json(
+            { error: "You must be logged in to update preferences." },
+            { status: 401 }
+        );
+    }
 
-//     try {
-//         const body = await request.json();
-//         const { is_active } = body;
+    try {
+        const body = await request.json();
+        const { is_active } = body;
 
-//         // Update user preferences
-//         const { error: updateError } = await supabase
-//             .from("user_preferences")
-//             .update({ is_active })
-//             .eq("user_id", user.id);
+        // Update user preferences
+        const { error: updateError } = await supabase
+            .from("user_preferences")
+            .update({ is_active })
+            .eq("user_id", user.id);
 
-//         if (updateError) {
-//             console.error("Error updating preferences:", updateError);
-//             return NextResponse.json(
-//                 { error: "Failed to update preferences" },
-//                 { status: 500 }
-//             );
-//         }
+        if (updateError) {
+            console.error("Error updating preferences:", updateError);
+            return NextResponse.json(
+                { error: "Failed to update preferences" },
+                { status: 500 }
+            );
+        }
 
-//         // If deactivating the newsletter, cancel all scheduled functions for this user
-//         if (!is_active) {
-//             try {
-//                 // Cancel all pending newsletter.schedule events for this user
-//                 await cancelUserNewsletterEvents(user.id);
-//             } catch (cancelError) {
-//                 console.error("Error canceling scheduled events:", cancelError);
-//                 // Don't fail the request if cancellation fails, just log it
-//             }
-//         } else {
-//             // If reactivating the newsletter, schedule the next one
-//             try {
-//                 await rescheduleUserNewsletter(user.id);
-//             } catch (rescheduleError) {
-//                 console.error("Error rescheduling newsletter:", rescheduleError);
-//                 // Don't fail the request if rescheduling fails, just log it
-//             }
-//         }
+        // If deactivating the newsletter, cancel all scheduled functions for this user
+        if (!is_active) {
+            try {
+                // Cancel all pending newsletter.schedule events for this user
+                await cancelUserNewsletterEvents(user.id);
+            } catch (cancelError) {
+                console.error("Error canceling scheduled events:", cancelError);
+                // Don't fail the request if cancellation fails, just log it
+            }
+        } else {
+            // If reactivating the newsletter, schedule the next one
+            try {
+                await rescheduleUserNewsletter(user.id);
+            } catch (rescheduleError) {
+                console.error("Error rescheduling newsletter:", rescheduleError);
+                // Don't fail the request if rescheduling fails, just log it
+            }
+        }
 
-//         return NextResponse.json({
-//             success: true,
-//             message: "Preferences updated successfully",
-//         });
-//     } catch (error) {
-//         console.error("Error in user-preferences PATCH API:", error);
-//         return NextResponse.json(
-//             { error: "Internal server error" },
-//             { status: 500 }
-//         );
-//     }
-// }
+        return NextResponse.json({
+            success: true,
+            message: "Preferences updated successfully",
+        });
+    } catch (error) {
+        console.error("Error in user-preferences PATCH API:", error);
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
+        );
+    }
+}
 
 // Function to cancel all scheduled newsletter events for a user
-// async function cancelUserNewsletterEvents(userId: string) {
-//     const INNGEST_API =
-//         process.env.NODE_ENV === "production"
-//             ? "https://api.inngest.com/v1"
-//             : "http://localhost:8288/v1";
+async function cancelUserNewsletterEvents(userId: string) {
+    const INNGEST_API =
+        process.env.NODE_ENV === "production"
+            ? "https://api.inngest.com/v1"
+            : "http://localhost:8288/v1";
 
-//     try {
-//         // Get all events for this user
-//         const response = await fetch(`${INNGEST_API}/events`, {
-//             method: "GET",
-//             headers: {
-//                 Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
-//                 "Content-Type": "application/json",
-//             },
-//         });
+    try {
+        // Get all events for this user
+        const response = await fetch(`${INNGEST_API}/events`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-//         if (!response.ok) {
-//             throw new Error(`Failed to fetch events: ${response.statusText}`);
-//         }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch events: ${response.statusText}`);
+        }
 
-//         const events = await response.json();
+        const events = await response.json();
 
-//         // Filter events for this user that are newsletter.schedule events
-//         const userNewsletterEvents =
-//             events.data?.filter(
-//                 (event: any) =>
-//                     event.name === "newsletter.schedule" && event.data?.userId === userId
-//             ) || [];
+        // Filter events for this user that are newsletter.schedule events
+        const userNewsletterEvents =
+            events.data?.filter(
+                (event: any) =>
+                    event.name === "newsletter.schedule" && event.data?.userId === userId
+            ) || [];
 
-//         console.log(
-//             `Found ${userNewsletterEvents.length} newsletter events for user ${userId}`
-//         );
+        console.log(
+            `Found ${userNewsletterEvents.length} newsletter events for user ${userId}`
+        );
 
-//         // Log the events that would be affected
-//         for (const event of userNewsletterEvents) {
-//             console.log(
-//                 `Event ${event.id} scheduled for ${new Date(event.ts).toISOString()}`
-//             );
-//         }
+        // Log the events that would be affected
+        for (const event of userNewsletterEvents) {
+            console.log(
+                `Event ${event.id} scheduled for ${new Date(event.ts).toISOString()}`
+            );
+        }
 
-//         // Note: We can't actually cancel events via API, but the function will check
-//         // the user's is_active status and exit early if they've paused their newsletter
-//         console.log(
-//             `User ${userId} newsletter paused. Existing events will be skipped when they run.`
-//         );
-//     } catch (error) {
-//         console.error("Error in cancelUserNewsletterEvents:", error);
-//         throw error;
-//     }
-// }
+        // Note: We can't actually cancel events via API, but the function will check
+        // the user's is_active status and exit early if they've paused their newsletter
+        console.log(
+            `User ${userId} newsletter paused. Existing events will be skipped when they run.`
+        );
+    } catch (error) {
+        console.error("Error in cancelUserNewsletterEvents:", error);
+        throw error;
+    }
+}
 
-// // Function to reschedule newsletter for a user when they reactivate
-// async function rescheduleUserNewsletter(userId: string) {
-//     const supabase = await createClient();
+// Function to reschedule newsletter for a user when they reactivate
+async function rescheduleUserNewsletter(userId: string) {
+    const supabase = await createClient();
 
-//     try {
-//         // Get user preferences
-//         const { data: preferences, error } = await supabase
-//             .from("user_preferences")
-//             .select("categories, frequency, email")
-//             .eq("user_id", userId)
-//             .single();
+    try {
+        // Get user preferences
+        const { data: preferences, error } = await supabase
+            .from("user_preferences")
+            .select("categories, frequency, email")
+            .eq("user_id", userId)
+            .single();
 
-//         if (error || !preferences) {
-//             throw new Error("User preferences not found");
-//         }
+        if (error || !preferences) {
+            throw new Error("User preferences not found");
+        }
 
-//         // Calculate next schedule time
-//         const now = new Date();
-//         let nextScheduleTime: Date;
+        // Calculate next schedule time
+        const now = new Date();
+        let nextScheduleTime: Date;
 
-//         switch (preferences.frequency) {
-//             case "daily":
-//                 nextScheduleTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-//                 break;
-//             case "weekly":
-//                 nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-//                 break;
-//             case "biweekly":
-//                 nextScheduleTime = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-//                 break;
-//             default:
-//                 nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-//         }
+        switch (preferences.frequency) {
+            case "daily":
+                nextScheduleTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                break;
+            case "weekly":
+                nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                break;
+            case "biweekly":
+                nextScheduleTime = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+                break;
+            default:
+                nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        }
 
-//         nextScheduleTime.setHours(9, 0, 0, 0);
+        nextScheduleTime.setHours(9, 0, 0, 0);
 
-//         // Schedule the next newsletter
-//         await inngest.send({
-//             name: "newsletter.schedule",
-//             data: {
-//                 userId: userId,
-//                 email: preferences.email,
-//                 categories: preferences.categories,
-//                 frequency: preferences.frequency,
-//             },
-//             ts: nextScheduleTime.getTime(),
-//         });
+        // Schedule the next newsletter
+        await inngest.send({
+            name: "newsletter.schedule",
+            data: {
+                userId: userId,
+                email: preferences.email,
+                categories: preferences.categories,
+                frequency: preferences.frequency,
+            },
+            ts: nextScheduleTime.getTime(),
+        });
 
-//         console.log(
-//             `Rescheduled newsletter for user ${userId} at ${nextScheduleTime.toISOString()}`
-//         );
-//     } catch (error) {
-//         console.error("Error in rescheduleUserNewsletter:", error);
-//         throw error;
-//     }
-// }
+        console.log(
+            `Rescheduled newsletter for user ${userId} at ${nextScheduleTime.toISOString()}`
+        );
+    } catch (error) {
+        console.error("Error in rescheduleUserNewsletter:", error);
+        throw error;
+    }
+}
 
 export async function GET(request: NextRequest) {
     const supabase = await createClient();
