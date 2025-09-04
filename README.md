@@ -1,9 +1,12 @@
                                                AI PERSONALIZED NEWSLETTER GENERATOR
 
 
-                                               
 
 
+<div align="center">
+  <img src="picOne.png" alt="Main Dashboard" width="45%"/>
+  <img src="picTwo.png" alt="Category Selection" width="45%"/>
+</div>
 
 
 
