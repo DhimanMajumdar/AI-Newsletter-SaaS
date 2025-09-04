@@ -1,7 +1,17 @@
                                                AI PERSONALIZED NEWSLETTER GENERATOR
+                                            
 
-                                               
-<img src="/public/picOne.png" alt="Description of image" width="600" />
+
+![Entry Page](/public/picOne.png)
+
+![Dashboard](/public/picTwo.png)
+
+![Select Preferences](/public/picFour.png)
+
+![Select Frequency](/public/picFive.png)
+
+
+
 
 
 
