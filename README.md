@@ -1,12 +1,8 @@
                                                AI PERSONALIZED NEWSLETTER GENERATOR
 
+                                               
+<img src="/public/picOne.png" alt="Description of image" width="600" />
 
-
-
-<div align="center">
-  <img src="picOne.png" alt="Main Dashboard" width="45%"/>
-  <img src="picTwo.png" alt="Category Selection" width="45%"/>
-</div>
 
 
 
